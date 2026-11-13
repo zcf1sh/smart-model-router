@@ -19,7 +19,7 @@ In Harness Settings → Plugins, open **Smart model router** and set all four ro
 - `weakProvider`, `weakModel`
 - `strongProvider`, `strongModel`
 
-Then choose provider **Smart model router** and model **Auto · draft + review** in the conversation model picker. The weak-model default is the DeepSeek route `deepseek-official / Ds4.1flash`. The strong and iteration defaults use `openai / gpt-6.1-sol`; change them in plugin settings if you prefer another configured route.
+Then choose provider **Smart model router** and model **Auto · draft + review** in the conversation model picker. The weak-model default is the DeepSeek route `deepseek-official / deepseek-flash`. The strong and iteration defaults use `openai / gpt-6.1-sol`; change them in plugin settings if you prefer another configured route.
 
 ## Limitations
 
