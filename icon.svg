@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Smart model router">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4f8cff"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#g)"/>
+  <path d="M37 42h22c17 0 17 22 0 22H48m0 0 10-10m-10 10 10 10M91 86H69c-17 0-17-22 0-22h11m0 0L70 54m10 10L70 74" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"/>
+  <circle cx="91" cy="42" r="7" fill="#fff"/><circle cx="37" cy="86" r="7" fill="#fff"/>
+</svg>

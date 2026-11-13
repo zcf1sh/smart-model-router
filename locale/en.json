@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Smart model router",
+    "description": "A smaller model drafts first; a stronger model reviews the original conversation and produces the final answer. Adds an Auto model route."
+  }
+}

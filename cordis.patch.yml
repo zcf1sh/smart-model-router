@@ -1,0 +1,14 @@
+- insert:
+    - id: smart-model-router
+      name: '@local/smart-model-router'
+      config:
+        weakProvider: 'openai'
+        weakModel: 'Ds4.1flash'
+        strongProvider: 'openai'
+        strongModel: 'gpt-6.1-sol'
+        iterationEnabled: true
+        iterationProvider: 'openai'
+        iterationModel: 'gpt-6.1-sol'
+        iterationEvery: 20
+        iterationSampleChars: 4000
+        draftMaxChars: 10000
