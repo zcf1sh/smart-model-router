@@ -9,7 +9,7 @@
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
-  "files": ["index.js", "cordis.patch.yml", "locale/*.json", "icon.svg", "README.md"],
+  "files": ["index.js", "cordis.patch.yml", "locale/*.json", "icon.svg", "README.md", "README.zh.md"],
   "peerDependencies": {
     "@deepseek-ai/dsh-llm": "0.2.2-rc.3",
     "@deepseek-ai/schemastery": "~3.19.0"

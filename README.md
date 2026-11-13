@@ -1,5 +1,7 @@
 # Smart model router
 
+中文说明：[README.zh.md](README.zh.md)
+
 A Host-only Cordis bundle that adds the `smart-model-router` provider with one model, `auto`.
 
 ## Behavior
