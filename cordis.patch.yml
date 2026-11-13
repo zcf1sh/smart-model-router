@@ -2,7 +2,7 @@
     - id: smart-model-router
       name: '@local/smart-model-router'
       config:
-        weakProvider: 'openai'
+        weakProvider: 'deepseek-official'
         weakModel: 'Ds4.1flash'
         strongProvider: 'openai'
         strongModel: 'gpt-6.1-sol'

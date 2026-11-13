@@ -14,7 +14,7 @@
 ## 默认配置
 
 ```yaml
-weakProvider: openai
+weakProvider: deepseek-official
 weakModel: Ds4.1flash
 
 strongProvider: openai
@@ -28,7 +28,7 @@ iterationSampleChars: 4000
 draftMaxChars: 10000
 ```
 
-这些值可以在 Harness 的插件设置中修改。模型 ID 应填写当前 Provider 实际支持的准确值。
+这些值可以在 Harness 的插件设置中修改。`Ds4.1flash` 使用 DeepSeek 的 `deepseek-official` Provider；模型 ID 应填写当前 Provider 实际支持的准确值。
 
 ## 安装
 
