@@ -1,15 +1,16 @@
 # 智能模型路由
 
-这是一个面向 DeepSeek Harness 的 Cordis Host bundle。它提供一个虚拟模型路由：让较小模型先处理普通任务或生成草稿，再由更强模型复核复杂任务。
+面向 DeepSeek Harness 的 Cordis Host bundle。提供一个虚拟模型 `auto`，**每一步只调用一个模型**；弱模型起草阶段是可选项，默认关闭。
 
-## 功能
+## 行为
 
-- 短小、常规且不使用工具的请求，直接调用弱模型。
-- 较长、命中复杂任务关键词或包含工具的请求，先由弱模型起草，再交给强模型核验并生成最终答案。
-- 只有选择 `smart-model-router / auto` 时才会进入路由；显式选择其他 Provider 和模型时保持原有行为。
-- 弱模型草稿最多传递 `draftMaxChars` 个字符，草稿阶段最多生成 2048 tokens。
-- 自迭代默认启用：每完成 `iterationEvery` 次请求，使用配置的自迭代模型评估一个有界样本，并在 500～2500 字符范围内调整内存中的复杂度长度阈值。
-- 自迭代不会改写 Harness 配置文件，也不会修改 Provider、模型 ID、工具权限或系统提示词。
+- `reviewMode: off`（默认）：每个 step 只发起一次模型调用。简单提示走弱模型，复杂提示走强模型。
+- `reviewMode: on`：先让弱模型生成有界草稿，再交给强模型作答。这会让每步输入 token 翻倍，只有在质量收益明确时才建议开启。
+- `auto` 上报的上下文窗口与输出上限取两条路线的**较小值**，且不携带思考档位元数据。因此经过路由的回合，其上下文压力、压缩时机、思考预算都与直接选择该模型一致。
+- 每次路由调用都会清空 `reasoningEffort`，避免继承另一条路线的思考预算。
+- 显式选择任何其他 Provider / 模型时，完全不经过路由。
+- `lengthThreshold`：超过该字符数即判定为复杂任务。
+- `iterationEnabled`（默认 `false`）：每 `iterationEvery` 次请求追加一次评估调用，可在内存中微调 `lengthThreshold`。本地计数不花 token；为控制费用请保持关闭。
 
 ## 默认配置
 
@@ -20,86 +21,32 @@ weakModel: deepseek-flash
 strongProvider: openai
 strongModel: gpt-6.1-sol
 
-iterationEnabled: true
+reviewMode: off
+lengthThreshold: 900
+draftMaxChars: 8000
+
+iterationEnabled: false
 iterationProvider: openai
 iterationModel: gpt-6.1-sol
-iterationEvery: 20
-iterationSampleChars: 4000
-draftMaxChars: 10000
+iterationEvery: 50
+iterationSampleChars: 2000
 ```
 
-这些值可以在 Harness 的插件设置中修改。`deepseek-flash` 使用 DeepSeek 的 `deepseek-official` Provider；模型 ID 应填写当前 Provider 实际支持的准确值。
+若要成本最低，把强弱两条路线指向同一个 Provider，以保持 prompt cache 命中。
 
-## 安装
+## 安装与使用
 
-### 从 GitHub 克隆
+在 Harness 插件设置中填写准确的 Provider 与模型 ID，然后在会话模型选择器中选择：
+
+- Provider：`Smart model router`
+- Model：`Auto · …`
+
+也可从 GitHub 克隆后安装本地目录：
 
 ```bash
 git clone https://github.com/zcf1sh/smart-model-router.git
 ```
 
-然后在 Harness 插件管理器中安装克隆后的目录。
+## 限制
 
-### 从本地目录安装
-
-在 Harness 的插件管理器中选择本地插件目录：
-
-```text
-smart-model-router/
-```
-
-## 使用
-
-1. 打开 Harness 的插件设置。
-2. 设置 `weakProvider`、`weakModel`、`strongProvider`、`strongModel`。
-3. 设置 `iterationProvider` 和 `iterationModel`，或关闭 `iterationEnabled`。
-4. 在会话模型选择器中选择：
-   - Provider：`Smart model router`
-   - Model：`Auto · draft + review`
-
-## 复杂度判定
-
-当前规则满足任意一项就进入复杂路径：
-
-- 请求包含工具；
-- 拼接后的文本长度超过当前长度阈值；
-- 命中分析、比较、推导、证明、调研、研究、设计、调试、排查、实现、编程、代码、方案、评估等关键词，或对应的英文关键词。
-
-没有工具、文本较短且没有命中关键词的请求，直接调用弱模型。
-
-## 自迭代机制
-
-每隔若干次请求，自迭代模型会收到以下摘要信息：
-
-- 任务长度；
-- 是否使用工具；
-- 当前复杂度判定结果；
-- 最终流是否失败；
-- 最终答复的有界片段。
-
-模型只允许建议新的 `lengthThreshold`。插件会验证结果并限制范围，之后应用到后续请求。阈值目前保存在插件运行内存中，Harness 重启后恢复为默认值。
-
-## 成本与延迟
-
-- 简单任务：一次弱模型调用。
-- 复杂任务：一次弱模型起草加一次强模型复核。
-- 每个 `iterationEvery` 请求额外进行一次自迭代评估。
-
-复杂任务会增加响应延迟和模型调用次数；如果使用订阅或 OAuth 模型，主要影响调用额度和等待时间。
-
-## 文件结构
-
-```text
-package.json
-cordis.patch.yml
-index.js
-icon.svg
-README.md
-README.zh.md
-locale/en.json
-locale/zh.json
-```
-
-## 许可证
-
-当前仓库未附加独立许可证文件。使用或再发布前，请根据你的部署需求补充许可证。
+开启 `reviewMode: on` 后，单步成本比单次调用多约 `C + D` 输入 token（`C` 为对话上下文，`D` 为草稿）。起草与复核都在适配器内部完成，会话记录只保留最终答案。当前能力声明为纯文本。

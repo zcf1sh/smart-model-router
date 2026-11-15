@@ -2,25 +2,44 @@
 
 中文说明：[README.zh.md](README.zh.md)
 
-A Host-only Cordis bundle that adds the `smart-model-router` provider with one model, `auto`.
+A Host-only Cordis bundle that adds the `smart-model-router` provider with one model, `auto`. Each step is routed to **exactly one** configured model; the weak-draft pass is optional and off by default.
 
 ## Behavior
 
-- Short routine prompts without tools are sent to the configured weak model in one call.
-- Longer or explicitly complex prompts, and prompts with tools, use a bounded weak-model draft followed by a strong-model review. The strong model sees the original conversation and the draft; only its final stream is exposed to the Agent.
-- Explicit selection of any existing provider/model is untouched. The router runs only when `smart-model-router / auto` is selected.
-- `draftMaxChars` bounds how much draft text is passed to the reviewer. The preliminary generation is capped at 2,048 output tokens.
-- Self-iteration is enabled by default: every `iterationEvery` completed requests, the configured iteration model receives a bounded sample and may adjust the in-memory complexity length threshold between 500 and 2,500 characters. This adds no call on other requests and does not rewrite the profile file.
+- `reviewMode: off` (default) — one model call per step. Simple prompts go to the weak model, complex prompts to the strong model.
+- `reviewMode: on` — a bounded weak-model draft is added before the strong model answers. This doubles input tokens per step; enable only when the extra quality is worth it.
+- The advertised `auto` model reports the **smaller** context window and output cap of the configured routes, and carries no reasoning metadata. A routed turn therefore keeps the harness's context pressure, compaction, and thinking budget identical to a direct selection of that route.
+- `reasoningEffort` is cleared on every routed call, so each route uses its own adapter default instead of inheriting another route's thinking budget.
+- Explicit selection of any provider/model bypasses the router entirely.
+- `lengthThreshold` is the character count above which a prompt is treated as complex.
+- `iterationEnabled` (default `false`) adds one evaluation call per `iterationEvery` requests, which may tune `lengthThreshold` in memory. Local counters cost nothing; leave this off to avoid extra spend.
+
+## Defaults
+
+```yaml
+weakProvider: deepseek-official
+weakModel: deepseek-flash
+
+strongProvider: openai
+strongModel: gpt-6.1-sol
+
+reviewMode: off
+lengthThreshold: 900
+draftMaxChars: 8000
+
+iterationEnabled: false
+iterationProvider: openai
+iterationModel: gpt-6.1-sol
+iterationEvery: 50
+iterationSampleChars: 2000
+```
+
+For the lowest cost, point both routes at the same provider so prompt caching stays warm.
 
 ## Setup
 
-In Harness Settings → Plugins, open **Smart model router** and set all four route values using the exact provider and model IDs shown in Harness:
-
-- `weakProvider`, `weakModel`
-- `strongProvider`, `strongModel`
-
-Then choose provider **Smart model router** and model **Auto · draft + review** in the conversation model picker. The weak-model default is the DeepSeek route `deepseek-official / deepseek-flash`. The strong and iteration defaults use `openai / gpt-6.1-sol`; change them in plugin settings if you prefer another configured route.
+In Harness Settings → Plugins, open **Smart model router** and set the route values using the exact provider and model IDs shown in Harness. Then choose provider **Smart model router** and model **Auto · …** in the conversation model picker.
 
 ## Limitations
 
-A complex turn makes two model calls; this adds latency and can increase metered API usage. The simple-prompt path uses one weak-model call. The draft/review exchange is internal to the adapter, so the session transcript records the final Auto-selected answer, not a separate visible draft turn. Image/model capability is currently advertised as text-only.
+With `reviewMode: on`, one step costs roughly `C + D` more input tokens than a single call, where `C` is the conversation context and `D` the draft. The draft/review exchange is internal to the adapter, so the session transcript records only the final answer. Capability is advertised as text-only.

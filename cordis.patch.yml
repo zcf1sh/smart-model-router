@@ -6,9 +6,11 @@
         weakModel: 'deepseek-flash'
         strongProvider: 'openai'
         strongModel: 'gpt-6.1-sol'
-        iterationEnabled: true
+        reviewMode: 'off'
+        lengthThreshold: 900
+        draftMaxChars: 8000
+        iterationEnabled: false
         iterationProvider: 'openai'
         iterationModel: 'gpt-6.1-sol'
-        iterationEvery: 20
-        iterationSampleChars: 4000
-        draftMaxChars: 10000
+        iterationEvery: 50
+        iterationSampleChars: 2000
